@@ -1,0 +1,120 @@
+{
+	"info": {
+		"_postman_id": "be70914b-9177-4704-902c-4b79af49f46a",
+		"name": "ACMEats",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21069070"
+	},
+	"item": [
+		{
+			"name": "Create Customer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"customer\": {\n        \"firstName\": \"Nikhil\",\n        \"lastName\": \"Dange\",\n        \"email\": \"nsdange@ucsd.edu\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/customer",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"customer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Driver",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"driver\": {\n        \"firstName\": \"LeBron\",\n        \"lastName\": \"James\",\n        \"email\": \"thegoat23@ucsd.edu\",\n        \"balance\": 600,\n        \"licensePlate\": \"BETTERTHANMJ\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/driver",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"driver"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Place Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"fromLocation\": \"San Francisco\",\n    \"toLocation\": \"San Diego\",\n    \"customerId\": \"189158ab-3b1e-4f18-abc4-bda9de0a7b9d\",\n    \"restaurant\": \"Ramen Nagi\",\n    \"orderDetails\": {\n        \"item\": \"Ramen\",\n        \"quantity\": 10\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/customer/order",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"customer",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Accept Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"driverId\": \"be222512-183e-47eb-ae4d-73a503e4191c\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/driver/order",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"driver",
+						"order"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
