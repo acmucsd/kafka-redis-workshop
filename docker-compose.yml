@@ -1,4 +1,3 @@
-version: "3"
 services:
   zookeeper:
     image: 'bitnami/zookeeper:latest'
@@ -29,5 +28,7 @@ services:
       POSTGRES_PASSWORD: password
   redis:
     image: bitnami/redis:latest
+    ports:
+      - '6379:6379'
     environment:
       - ALLOW_EMPTY_PASSWORD=yes

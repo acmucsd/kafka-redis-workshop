@@ -1,13 +1,13 @@
 const express = require('express');
 const uuid = require('uuid');
 const { getConsumer, getProducer } = require('./kafka');
-// const redis = require('./redis');
-const { getCostBetweenLocations } = require('./services/moneyService');
+const { getCostForOrder } = require('./services/moneyService');
 const Customer = require('./models/customer');
 const Driver = require('./models/driver');
 const Order = require('./models/order');
+const Redis = require('ioredis');
 
-// const client = redis.createClient();
+const redis = new Redis(6379);
 
 const router = express.Router();
 
@@ -32,6 +32,22 @@ router.post('/customer/order', async (req, res, next) => {
 
   // attempt to use a cached calculation for the cost
   // based on the from and to locations
+
+  // check the cache
+  // if in the cache, totalCost = that value
+  const cacheKey = `${fromLocation}-${toLocation}`;
+  let totalCost = 0;
+  await redis.get(cacheKey).then((result) => {
+    if (result) {
+      totalCost = result;
+      console.log("Retrieved cost from cache");
+    } else {
+      // calculate the cost
+      totalCost = getCostForOrder(fromLocation, toLocation, orderDetails);
+      // add to cache
+      redis.set(cacheKey, totalCost);
+    }
+  });
   const orderRequest = {
     id: uuid.v4(),
     fromLocation,
@@ -39,7 +55,7 @@ router.post('/customer/order', async (req, res, next) => {
     customerId: customerId,
     driverId: null,
     restaurant,
-    cost: getCostBetweenLocations(fromLocation, toLocation),
+    cost: totalCost,
     orderDetails,
     orderStatus: 'Pending',
   };
@@ -54,11 +70,12 @@ router.post('/customer/order', async (req, res, next) => {
     messages: [
       {
         value: JSON.stringify(orderRequest),
-        // timestamp: new Date().toISOString(),
-        timestamp: 200000,
+        timestamp: Date.now(),
       }
     ]
-  })
+  });
+
+  console.log("Sent message to orders message queue");
 
   res.status(201).json({ order: orderRequest });
 });
@@ -87,14 +104,17 @@ router.post('/driver/order', async (req, res, next) => {
   await consumer.run({
     eachMessage: async ({ message }) => {
       console.log('Received message from orders message queue');
-      const orderDetails = JSON.parse(message.value);
+      const order = JSON.parse(message.value);
+      console.log(order);
+      console.log("DRIVERID: ", driverId);
 
-      orderDetails.driver = driverId;
+      order.driverId = driverId;
 
       try {
-        await Order.create(orderDetails);
-        res.status(200).json({ order: orderDetails, driverId });
+        await Order.create(order);
+        res.status(200).json({ order: order });
         consumer.pause([{ topic: 'orders' }]);
+        consumer.disconnect();
       } catch (e) {
         res.status(500).json({ error: e.message });
       }
