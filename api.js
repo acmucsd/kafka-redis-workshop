@@ -30,24 +30,10 @@ router.post('/customer', async (req, res, next) => {
 router.post('/customer/order', async (req, res, next) => {
   const { fromLocation, toLocation, customerId, restaurant, orderDetails } = req.body;
 
-  // attempt to use a cached calculation for the cost
-  // based on the from and to locations
+  // 1) TODO: Check if the cost of the order is in the Redis cache
+  // If not, calculate the cost and add it to the cache
+  const totalCost = 0;
 
-  // check the cache
-  // if in the cache, totalCost = that value
-  const cacheKey = `${fromLocation}-${toLocation}`;
-  let totalCost = 0;
-  await redis.get(cacheKey).then((result) => {
-    if (result) {
-      totalCost = result;
-      console.log("Retrieved cost from cache");
-    } else {
-      // calculate the cost
-      totalCost = getCostForOrder(fromLocation, toLocation, orderDetails);
-      // add to cache
-      redis.set(cacheKey, totalCost);
-    }
-  });
   const orderRequest = {
     id: uuid.v4(),
     fromLocation,
@@ -60,20 +46,9 @@ router.post('/customer/order', async (req, res, next) => {
     orderStatus: 'Pending',
   };
 
-  // Cache the order request
-  // client.set(orderRequest.id, JSON.stringify(orderRequest));
-
-  // Publish the order to Kafka topic
   const producer = await getProducer();
-  producer.send({
-    topic: 'orders',
-    messages: [
-      {
-        value: JSON.stringify(orderRequest),
-        timestamp: Date.now(),
-      }
-    ]
-  });
+  // 1) TODO: Publish the order to the 'orders' topic with the order data
+
 
   console.log("Sent message to orders message queue");
 
@@ -97,29 +72,12 @@ router.post('/driver', async (req, res, next) => {
 // Driver accepts an order
 router.post('/driver/order', async (req, res, next) => {
 
-  const consumer = await getConsumer();
+  
   const { driverId } = req.body;
 
-  await consumer.subscribe({ topic: 'orders', fromBeginning: true });
-  await consumer.run({
-    eachMessage: async ({ message }) => {
-      console.log('Received message from orders message queue');
-      const order = JSON.parse(message.value);
-      console.log(order);
-      console.log("DRIVERID: ", driverId);
-
-      order.driverId = driverId;
-
-      try {
-        await Order.create(order);
-        res.status(200).json({ order: order });
-        consumer.pause([{ topic: 'orders' }]);
-        consumer.disconnect();
-      } catch (e) {
-        res.status(500).json({ error: e.message });
-      }
-    }
-  })
+  const consumer = await getConsumer();
+  // TODO: subscribe to the 'orders' topic
+  // complete logic for what happens with the order is consumed
 });
 
 module.exports = router;
