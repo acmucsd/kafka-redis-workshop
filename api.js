@@ -60,8 +60,6 @@ router.post('/customer/order', async (req, res, next) => {
     orderStatus: 'Pending',
   };
 
-  // Cache the order request
-  // client.set(orderRequest.id, JSON.stringify(orderRequest));
 
   // Publish the order to Kafka topic
   const producer = await getProducer();
@@ -105,8 +103,6 @@ router.post('/driver/order', async (req, res, next) => {
     eachMessage: async ({ message }) => {
       console.log('Received message from orders message queue');
       const order = JSON.parse(message.value);
-      console.log(order);
-      console.log("DRIVERID: ", driverId);
 
       order.driverId = driverId;
 
@@ -119,7 +115,7 @@ router.post('/driver/order', async (req, res, next) => {
         res.status(500).json({ error: e.message });
       }
     }
-  })
+  });
 });
 
 module.exports = router;
